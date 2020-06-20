@@ -190,6 +190,8 @@ public class BlockMeterClient implements ClientModInitializer
         final DimensionType currentDimension = client.player.dimension;
         RenderSystem.pushMatrix();
         RenderSystem.multMatrix(stack.peek().getModel());
+
+        client.textRenderer.draw("XXX", -100, -100, 0);  // MEH! but this seems to be needed to get the first background rectangle
         if (showOtherUsersBoxes && otherUsersBoxes != null && otherUsersBoxes.size()>0) {
             this.otherUsersBoxes.forEach((playerText, boxList) -> {
                 boxList.forEach(box -> box.render(camera, currentDimension, playerText));

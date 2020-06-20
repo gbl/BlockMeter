@@ -14,6 +14,7 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.Rotation3;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.PacketByteBuf;
@@ -39,7 +40,7 @@ public class ClientMeasureBox extends MeasureBox
         this.dimension = dimension;
         this.color = this.getNextColor();
         this.finished = false;
-        this.setBoundingBox();        setBoundingBox();
+        this.setBoundingBox();
     }
 
     public static ClientMeasureBox fromPacketByteBuf(PacketByteBuf attachedData) {
@@ -198,7 +199,7 @@ public class ClientMeasureBox extends MeasureBox
     private void drawText(final double x, final double y, final double z, final float yaw, final float pitch, final String length) {
         final TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 
-        final String lengthString = String.valueOf(length);
+        final LiteralText lengthString = new LiteralText(length);
 
         final float size = 0.03f;
 
@@ -207,9 +208,21 @@ public class ClientMeasureBox extends MeasureBox
         RenderSystem.rotatef((float)(180.0f - yaw), 0.0f, 1.0f, 0.0f);
         RenderSystem.rotatef((float)(-pitch), 1.0f, 0.0f, 0.0f);
         RenderSystem.scaled(0.03, -0.03, 0.001);
-        RenderSystem.translated((double)(-textRenderer.getStringWidth(lengthString) / 2), 0.0, 0.0);
-        VertexConsumerProvider.Immediate immediate = VertexConsumerProvider.immediate(Tessellator.getInstance().getBuffer());
-        textRenderer.draw(lengthString, 0.0f, 0.0f, 
+        int width = textRenderer.getStringWidth(length);
+        RenderSystem.translated((double)(-width / 2), 0.0, 0.0);
+
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
+
+        float[] colors = this.color.getColorComponents();
+        buffer.begin(7, VertexFormats.POSITION_COLOR);
+        buffer.vertex(-1, -1, 0).color(colors[0], colors[1], colors[2], 0.8f).next();
+        buffer.vertex(-1, 8, 0).color(colors[0], colors[1], colors[2], 0.8f).next();
+        buffer.vertex(width, 8, 0).color(colors[0], colors[1], colors[2], 0.8f).next();
+        buffer.vertex(width, -1, 0).color(colors[0], colors[1], colors[2], 0.8f).next();
+        Tessellator.getInstance().draw();
+
+        VertexConsumerProvider.Immediate immediate = VertexConsumerProvider.immediate(buffer);
+        textRenderer.draw(length, 0.0f, 0.0f, 
                 this.color.getSignColor(),
                 false,                              // shadow
                 Rotation3.identity().getMatrix(),   // matrix
